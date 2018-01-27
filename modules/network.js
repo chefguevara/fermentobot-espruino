@@ -1,14 +1,11 @@
 const wifi = require('Wifi');
-const config = require('config');
 const http = require('http');
 
 const HTTP_PORT = 8080;
 const AP_SSID = 'fermentobot';
 const AP_PASSWD = 'fermentobot';
 
-const fieldMap = ['deviceName', 'ssid', 'password', 'sensor', 'cooler', 'heater'];
-
-const getConfiguration = (res, deviceName, ssid, password, sensor, cooler, heater) => {
+const getConfigurationPage = (res, deviceName, ssid, password, sensor, cooler, heater) => {
   res.writeHead(200, {
     'Content-Type': 'text/html'
   });
@@ -63,85 +60,93 @@ const getConfiguration = (res, deviceName, ssid, password, sensor, cooler, heate
     </html>
     `);
   res.end();
-}
-
-const start = (deviceName, ssid, password, sensor, cooler, heater) => {
-  // add debug eventlisteners
-  //wifi.on('probe_recv',   data => console.log('probe_recv', data));
-  wifi.on('connected', data => console.log('connected', data));
-  wifi.on('disconnected', data => console.log('disconnected', data));
-  wifi.on('dhcp_timeout', () => console.log('dhcp_timeout'));
-  wifi.on('auth_change', data => console.log('auth_change', data));
-  wifi.on('associated', data => console.log('associated', data));
-
-  if (ssid && password) {
-    wifi.connect(ssid, {
-      password
-    }, (err, data) => {
-      if (err) {
-        console.log('wifi.connect:', err);
-        return;
-      }
-      console.log(wifi.getIP(), wifi.getDetails());
-      // do something after 
-    });
-  } else {
-    // activate ap
-    wifi.startAP(AP_SSID, {
-      authoMode: 'wpa_wpa2',
-      password: AP_PASSWD
-    }, err => {
-      if (err) {
-        console.log('wifi.startAP:', err);
-        return;
-      }
-      let apinfo = wifi.getAPDetails();
-      console.log(apinfo);
-
-      // build http server
-      let onRequest = (req, res) => {
-        if (req.url !== '/') {
-          res.writeHead(404, {
-            'Content-Type': 'text/html'
-          });
-          res.end();
-          return;
-        }
-
-        // led on/off command
-        if (req.method === 'POST') {
-          let buf = [];
-          req.on('data', chunk => buf.push(chunk));
-          req.on('end', () => {
-            let query = buf.join('').split('&').map(v => v.split('=').map(t => encodeURIComponent(t)))
-              .reduce((a, c) => Object.defineProperty(a, c[0], {
-                value: c[1]
-              }), {});
-              Object.keys(query).forEach(key => {
-                if (fieldMap.contains(key)) {
-                  console.log(`saving ${key}: ${query[key]}`);
-                  config.save(fieldMap.indexOf(key), query[key]);
-                }
-              });
-          });
-          // TODO: show a response page with success
-          res.writeHead(302, {
-            Location: '/'
-          });
-          res.end();
-          return;
-        } else if (req.method === 'GET') {
-          console.log('GET witg params:', deviceName, ssid, password, sensor, cooler, heater);
-          getConfiguration(res, deviceName, ssid, password, sensor, cooler, heater);
-        }
-
-        // response page
-      };
-
-      http.createServer(onRequest).listen(HTTP_PORT);
-      console.log('Listen http://', wifi.getAPIP().ip + ':' + HTTP_PORT);
-    });
-  }
 };
 
-exports.network = {start};
+const saveConfiguration = (req, res, config) => {
+  const fieldMap = ['deviceName', 'ssid', 'password', 'sensor', 'cooler', 'heater'];
+  const buf = [];
+  req.on('data', chunk => buf.push(chunk));
+  req.on('end', () => {
+    const query = buf.join('').split('&').map(v => v.split('=').map(t => encodeURIComponent(t)))
+      .reduce((a, c) => Object.defineProperty(a, c[0], { value: c[1] }), {});
+    Object.keys(query).forEach((key) => {
+      const index = fieldMap.indexOf(key);
+      if (index >= 0) {
+        console.log(`saving ${key}: ${query[key]}`);
+        config.save(index, query[key]);
+      }
+    });
+    setTimeout(() => {
+      console.log('will reset in 3...2...1...');
+      reset();
+    }, 5000);
+  });
+  res.writeHead(302, {
+    Location: '/'
+  });
+  res.end();
+};
+
+exports = {
+  start: config => new Promise((resolve, reject) => {
+    const configData = config.loadAll();
+    const deviceName = configData[0];
+    const ssid = configData[1];
+    const password = configData[2];
+    const sensor = configData[3];
+    const cooler = configData[4];
+    const heater = configData[5];
+
+    wifi.on('connected', data => console.log('connected', data));
+    wifi.on('disconnected', data => console.log('disconnected', data));
+    wifi.on('dhcp_timeout', () => console.log('dhcp_timeout'));
+    wifi.on('auth_change', data => console.log('auth_change', data));
+    wifi.on('associated', data => console.log('associated', data));
+
+    if (ssid && password) {
+      wifi.connect(ssid, {
+        password
+      }, (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve({ ip: wifi.getIP(), details: wifi.getDetails() });
+      });
+    } else {
+      // activate ap
+      wifi.startAP(AP_SSID, {
+        authoMode: 'wpa_wpa2',
+        password: AP_PASSWD
+      }, (err) => {
+        if (err) {
+          console.log('wifi.startAP:', err);
+          return;
+        }
+        console.log(wifi.getAPDetails());
+
+        // build http server
+        const onRequest = (req, res) => {
+          if (req.url !== '/') {
+            res.writeHead(404, {
+              'Content-Type': 'text/html'
+            });
+            res.end();
+            return;
+          }
+
+          if (req.method === 'POST') {
+            saveConfiguration(req, res, config);
+            // TODO: show a response page with success
+          } else if (req.method === 'GET') {
+            console.log('GET with params:', deviceName, ssid, password, sensor, cooler, heater);
+            getConfigurationPage(res, deviceName, ssid, password, sensor, cooler, heater);
+          }
+        };
+
+        http.createServer(onRequest).listen(HTTP_PORT);
+        console.log(`Listen http://${wifi.getAPIP().ip}:${HTTP_PORT}`);
+      });
+    }
+  })
+};

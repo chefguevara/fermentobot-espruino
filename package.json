@@ -1,0 +1,29 @@
+{
+  "name": "fermentobot2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "scripts": {
+    "dev": "espruino projects/index.js -w",
+    "start": "espruino"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chefguevara/fermentobot-espruino.git"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chefguevara/fermentobot-espruino/issues"
+  },
+  "homepage": "https://github.com/chefguevara/fermentobot-espruino#readme",
+  "devDependencies": {
+    "eslint": "^4.16.0",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "espruino": "0.0.36"
+  },
+  "dependencies": {}
+}

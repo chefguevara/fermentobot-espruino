@@ -1,6 +1,7 @@
-const network = require('./network');
-const config = require('./config');
+const network = require('network');
+const config = require('config');
 
-const onInit = () =>  network.start(...config.loadAll());
-
+network.start(config).then(() => {
+  console.log('start!');
+});
 
