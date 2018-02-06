@@ -6,7 +6,8 @@
     "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1 }],
     "global-require": 0,
     "import/no-unresolved": 0,
-    "import/no-extraneous-dependencies": 0
+    "import/no-extraneous-dependencies": 0,
+    "object-shorthand": 0
   },
   "globals": {
     "E": true,

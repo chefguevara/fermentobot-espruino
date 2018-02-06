@@ -1,11 +1,11 @@
 const wifi = require('Wifi');
 const http = require('http');
 
-const HTTP_PORT = 8080;
+const HTTP_PORT = 80;
 const AP_SSID = 'fermentobot';
 const AP_PASSWD = 'fermentobot';
 
-const getConfigurationPage = (res, deviceName, ssid, password, sensor, cooler, heater) => {
+const getConfigurationPage = (res, readOnlyConf) => {
   res.writeHead(200, {
     'Content-Type': 'text/html'
   });
@@ -14,72 +14,87 @@ const getConfigurationPage = (res, deviceName, ssid, password, sensor, cooler, h
         <head>
             <meta name="viewport" content="initial-scale=1.0" />
             <meta charset="utf-8" />
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
             <title>Fermentobot</title>
         </head>
         <body>
           <div class="container-fluid">
-            <h1>Welcome to ${deviceName || 'Fermentobot'}!</h1>
+            <h1>Welcome to ${readOnlyConf.hostname || 'Fermentobot'}!</h1>
             
             <h2>Confifguration</h2>
             <form action="/" method="post">
               <div class="input-group">
-                <span class="input-group-addon" id="basic-addon1">Device Name</span>
-                <input type="text" name="deviceName" id="deviceName" value="${deviceName || ''}" />
+                <span class="input-group-addon" id="basic-addon1">Hostname</span>
+                <input type="text" name="hostname" id="hostname" value="${readOnlyConf.hostname || ''}" />
               </div>
               
               <div class="input-group">
                 <span class="input-group-addon" id="basic-addon1">SSID</span>
-                <input type="text" name="ssid" id="ssid" value="${ssid || ''}" />
+                <input type="text" name="ssid" id="ssid" value="${readOnlyConf.ssid || ''}" />
               </div>
 
               <div class="input-group">
                 <span class="input-group-addon" id="basic-addon1">Password</span>
-                <input type="text" name="password" id="password" value="${password || ''}" />
+                <input type="text" name="password" id="password" value="${readOnlyConf.password || ''}" />
               </div>
 
               <div class="input-group">
                 <span class="input-group-addon" id="basic-addon1">Sensor Pin</span>
-                <input type="text" name="sensor" id="sensor" value="${sensor || ''}" />
+                <input type="text" name="sensor" id="sensor" value="${readOnlyConf.sensor || ''}" />
               </div>
                 
               <div class="input-group">
                 <span class="input-group-addon" id="basic-addon1">Cooler Relay Pin</span>
-                <input type="text" name="cooler" id="cooler" value="${cooler || ''}" />
+                <input type="text" name="cooler" id="cooler" value="${readOnlyConf.cooler || ''}" />
               </div>
 
               <div class="input-group">
-                <span class="input-group-addon" id="basic-addon1">Heater Relay Pin</span>
-                <input type="text" name="heater" id="heater" value="${heater || ''}" />
+                <span class="input-group-addon" id="basic-addon1">Valve Relay Pin</span>
+                <input type="text" name="valve" id="valve" value="${readOnlyConf.valve || ''}" />
               </div>
               <button type="submit" class="btn btn-success dropdown-toggle">Save</button>
             </form>
           </div>
-          <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         </body>
     </html>
     `);
   res.end();
 };
 
-const saveConfiguration = (req, res, config) => {
-  const fieldMap = ['deviceName', 'ssid', 'password', 'sensor', 'cooler', 'heater'];
+const connectToWifi = (ssid, password, callback) => {
+  wifi.connect(ssid, {
+    password: password
+  }, (err) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    callback();
+    console.log(wifi.getDetails());
+  });
+};
+
+const saveConfiguration = (req, res, readOnlyConf, resolve) => {
   const buf = [];
   req.on('data', chunk => buf.push(chunk));
   req.on('end', () => {
-    const query = buf.join('').split('&').map(v => v.split('=').map(t => encodeURIComponent(t)))
+    const config = buf.join('').split('&').map(v => v.split('='))
       .reduce((a, c) => Object.defineProperty(a, c[0], { value: c[1] }), {});
-    Object.keys(query).forEach((key) => {
-      const index = fieldMap.indexOf(key);
-      if (index >= 0) {
-        console.log(`saving ${key}: ${query[key]}`);
-        config.save(index, query[key]);
-      }
+    // do something between roconfig and config
+    const ssid = (readOnlyConf) ? config.ssid : readOnlyConf.ssid;
+    const password = (readOnlyConf) ? decodeURIComponent(config.password) : readOnlyConf.password;
+    const hostname = (readOnlyConf) ? config.hostname : readOnlyConf.hostname;
+    console.log(config);
+    wifi.setHostname(hostname);
+    wifi.stopAP(() => {
+      connectToWifi(
+        ssid,
+        password,
+        () => {
+          resolve({ sensor: config.sensor, cooler: config.cooler, valve: config.valve });
+        }
+      );
     });
-    setTimeout(() => {
-      console.log('will reset in 3...2...1...');
-      reset();
-    }, 5000);
+    console.log('will connect in 3...2...1...');
   });
   res.writeHead(302, {
     Location: '/'
@@ -88,35 +103,30 @@ const saveConfiguration = (req, res, config) => {
 };
 
 exports = {
-  start: config => new Promise((resolve, reject) => {
-    const configData = config.loadAll();
-    const deviceName = configData[0];
-    const ssid = configData[1];
-    const password = configData[2];
-    const sensor = configData[3];
-    const cooler = configData[4];
-    const heater = configData[5];
-
+  start: readOnlyConf => new Promise((resolve) => {
     wifi.on('connected', data => console.log('connected', data));
     wifi.on('disconnected', data => console.log('disconnected', data));
     wifi.on('dhcp_timeout', () => console.log('dhcp_timeout'));
     wifi.on('auth_change', data => console.log('auth_change', data));
     wifi.on('associated', data => console.log('associated', data));
 
-    if (ssid && password) {
-      wifi.connect(ssid, {
-        password
-      }, (err) => {
-        if (err) {
-          reject(err);
-          return;
+    if (readOnlyConf.prod) { // ?
+      wifi.setHostname(readOnlyConf.hostname);
+      connectToWifi(
+        readOnlyConf.ssid,
+        readOnlyConf.password,
+        () => {
+          resolve({
+            sensor: readOnlyConf.sensor,
+            cooler: readOnlyConf.cooler,
+            valve: readOnlyConf.valve
+          });
         }
-        resolve({ ip: wifi.getIP(), details: wifi.getDetails() });
-      });
+      );
     } else {
       // activate ap
       wifi.startAP(AP_SSID, {
-        authoMode: 'wpa_wpa2',
+        authMode: 'wpa_wpa2',
         password: AP_PASSWD
       }, (err) => {
         if (err) {
@@ -136,11 +146,10 @@ exports = {
           }
 
           if (req.method === 'POST') {
-            saveConfiguration(req, res, config);
+            saveConfiguration(req, res, readOnlyConf, resolve);
             // TODO: show a response page with success
           } else if (req.method === 'GET') {
-            console.log('GET with params:', deviceName, ssid, password, sensor, cooler, heater);
-            getConfigurationPage(res, deviceName, ssid, password, sensor, cooler, heater);
+            getConfigurationPage(res, readOnlyConf);
           }
         };
 
