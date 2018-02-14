@@ -1,6 +1,7 @@
 {
   "extends": "airbnb-base",
   "rules": {
+    "no-bitwise": ["error", { "allow": ["<<", ">>", "|", "^"] }],
     "comma-dangle": ["error", "never"],
     "no-useless-call": "error",
     "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1 }],

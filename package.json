@@ -25,5 +25,7 @@
     "eslint-plugin-import": "^2.8.0",
     "espruino": "0.0.36"
   },
-  "dependencies": {}
+  "dependencies": {
+    "es-class": "^2.1.1"
+  }
 }

@@ -3,4 +3,4 @@ const int16 = (msb, lsb) => {
   return result >> 15 ? ((result ^ 0xFFFF) + 1) * -1 : result;
 };
 
-export default {int16};
+export default { int16 };
