@@ -19,14 +19,14 @@ const getConfigurationPage = (res, readOnlyConf) => {
         <body>
           <div class="container-fluid">
             <h1>Welcome to ${readOnlyConf.hostname || 'Fermentobot'}!</h1>
-            
+
             <h2>Confifguration</h2>
             <form action="/" method="post">
               <div class="input-group">
                 <span class="input-group-addon" id="basic-addon1">Hostname</span>
                 <input type="text" name="hostname" id="hostname" value="${readOnlyConf.hostname || ''}" />
               </div>
-              
+
               <div class="input-group">
                 <span class="input-group-addon" id="basic-addon1">SSID</span>
                 <input type="text" name="ssid" id="ssid" value="${readOnlyConf.ssid || ''}" />
@@ -41,7 +41,7 @@ const getConfigurationPage = (res, readOnlyConf) => {
                 <span class="input-group-addon" id="basic-addon1">Sensor Pin</span>
                 <input type="text" name="sensor" id="sensor" value="${readOnlyConf.sensor || ''}" />
               </div>
-                
+
               <div class="input-group">
                 <span class="input-group-addon" id="basic-addon1">Cooler Relay Pin</span>
                 <input type="text" name="cooler" id="cooler" value="${readOnlyConf.cooler || ''}" />

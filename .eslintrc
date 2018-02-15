@@ -1,5 +1,5 @@
 {
-  "extends": "airbnb-base",
+  "extends": "standard",
   "rules": {
     "no-bitwise": ["error", { "allow": ["<<", ">>", "|", "^"] }],
     "comma-dangle": ["error", "never"],
@@ -8,10 +8,13 @@
     "global-require": 0,
     "import/no-unresolved": 0,
     "import/no-extraneous-dependencies": 0,
-    "object-shorthand": 0
+    "object-shorthand": 0,
+    "semi": ["error", "always"],
+    "quotes": ["error", "double", { "avoidEscape": true }]
   },
   "globals": {
     "E": true,
-    "reset": true
+    "reset": true,
+    "OneWire": true
   }
 }
