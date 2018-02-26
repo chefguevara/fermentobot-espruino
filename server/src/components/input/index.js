@@ -7,9 +7,15 @@ const StyledInput = styled.input`
   width: 200px;
 `;
 
-const Input = ({ onChange }) => {
+const Input = ({ onChange, onKeyPress }) => {
   const handleChange = (e) => {
     onChange(e.target.value);
+  };
+
+  const handleKeyPress = (target) => {
+    if (target.key === 'Enter') {
+      onKeyPress();
+    }
   };
 
   return (
@@ -18,11 +24,13 @@ const Input = ({ onChange }) => {
       name="input"
       placeholder="Envia un mensaje"
       onChange={handleChange}
+      onKeyPress={handleKeyPress}
     />);
 };
 
 Input.propTypes = {
-  onChange: PropTypes.func.isRequired
+  onChange: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func.isRequired
 };
 
 export default Input;

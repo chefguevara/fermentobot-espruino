@@ -60,14 +60,18 @@ class App extends Component {
   }
 
   render() {
-    console.log('fermentadores: ', this.state.fermentadres);
     return (
       <StyledApp>
         <Header>
           <Clients clients={this.state.clients} />
         </Header>
         <Screen messages={this.state.messages} />
-        <Input onChange={this.onInputChange} value={this.state.input} />
+        <Input
+          onChange={this.onInputChange}
+          value={this.state.input}
+          onKeyPress={this.onButtonClick}
+        />
+        {console.log('Fermentadores', this.state.fermentadres)}
         <Button onClick={this.onButtonClick}>
           Enviar
         </Button>

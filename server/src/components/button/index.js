@@ -7,6 +7,7 @@ const StyledButton = styled.button`
 `;
 
 const Button = ({ children, onClick }) => {
+
   const handleClick = (e) => {
     e.preventDefault();
     onClick();
