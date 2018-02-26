@@ -35,7 +35,7 @@ externalip((err, ip) => {
 
 io.on('connection', (socket) => { // Al conectar...
   // Sumamos el cliente conectado a la variable global de clientes conectados.
-  socket.on('storeClientInfo', (data) => {
+  socket.on('storeClientInfo', (data) => { // Al conenctarse un cliente...
     const clientInfo = {};
     clientInfo.customId = data.customId;
     clientInfo.clientId = socket.client.id;
@@ -49,9 +49,9 @@ io.on('connection', (socket) => { // Al conectar...
     console.log('clientes conectados: ', clients.length);
   });
 
-  socket.on('message', (data) => {
-    io.sockets.emit('message', { description: `from: ${socket.client.id} - ${data}` });
-    console.log(`Message from ${socket.client.id}: `, data);
+  socket.on('message', (data) => { // Al emitir un mensaje...
+    io.sockets.emit('message', { description: `from: ${getClientCustomId(socket.client.id)} - ${data}` });
+    console.log(`Message from ${getClientCustomId(socket.client.id)}: `, data);
   });
 
   socket.on('disconnect', () => { // Al desconectar...
