@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 You can use the server or the ui in a separate mode, in case you want, or you can have them served both all toghether.
 
 ## Joined mode
-* run 'npm start' and hit `http://localhost:8080` on your browser. That's it.
+* run `npm start` and hit `http://localhost:8080` on your browser. That's it.
 
 ## Separate mode
 
