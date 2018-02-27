@@ -1,8 +1,19 @@
-const app = require('express')();
+const express = require('express');
+const bodyParser = require('body-parser');
+const path = require('path');
+
+const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const externalip = require('externalip');
-const moment = require('moment');
+
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('/ping', (req, res) => res.send('pong'));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 const PORT = 8080;
 
@@ -28,6 +39,12 @@ const getClientCustomId = (query) => {
   return found.customId;
 };
 
+const printClientsCustomId = () => {
+  clients.forEach((client) => {
+    console.log(`connected client: ${client.customId}`);
+  });
+};
+
 // Get the public ip of the server.
 externalip((err, ip) => {
   console.log(`External ip: ${ip}`);
@@ -41,8 +58,9 @@ io.on('connection', (socket) => { // Al conectar...
     clientInfo.clientId = socket.client.id;
     clients.push(clientInfo);
 
+    console.clear();
     // Imprime el 'id' del cliente al conectar.
-    console.log('connected clientId: ', getClientCustomId(socket.client.id));
+    printClientsCustomId();
 
     // Emite un mensaje a todos los clientes conectados mostrando numero de clientes conectados
     io.sockets.emit('broadcast', clients.length);
@@ -55,10 +73,12 @@ io.on('connection', (socket) => { // Al conectar...
   });
 
   socket.on('disconnect', () => { // Al desconectar...
+    console.clear();
     // Restamos el cliente desconectado a la variable global de clientes conectados.
     removeClient(socket.client.id);
     // Vuelve a emitir un mensaje con el numero de clientes conectados.
     io.sockets.emit('broadcast', clients.length);
+    printClientsCustomId();
     console.log('clientes conectados: ', clients.length);
   });
 

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import moment from 'moment';
 import styled from 'styled-components';
+
 import {
   subscribeToBroadcast,
   subscribeToConnect,
@@ -16,6 +16,14 @@ import Input from './components/input';
 
 const StyledApp = styled.div`
   text-align: center;
+`;
+
+const StyledDataWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 20px 0;
 `;
 
 class App extends Component {
@@ -60,18 +68,21 @@ class App extends Component {
   }
 
   render() {
+    console.log('fermentadores: ', this.state.fermentadres);
+
     return (
       <StyledApp>
         <Header>
           <Clients clients={this.state.clients} />
         </Header>
+        <StyledDataWrapper>
+          hola
+        </StyledDataWrapper>
         <Screen messages={this.state.messages} />
         <Input
           onChange={this.onInputChange}
-          value={this.state.input}
           onKeyPress={this.onButtonClick}
         />
-        {console.log('Fermentadores', this.state.fermentadres)}
         <Button onClick={this.onButtonClick}>
           Enviar
         </Button>
