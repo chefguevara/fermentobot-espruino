@@ -1,7 +1,7 @@
-import openSocket from 'socket.io-client';
+import io from 'socket.io-client';
 import shortid from 'shortid';
 
-const socket = openSocket('http://192.168.100.104:8080');
+const socket = io('http://localhost:8080');
 
 export const emitMessage = (msg) => {
   socket.emit('message', msg);
@@ -9,6 +9,13 @@ export const emitMessage = (msg) => {
 
 export const emitClientInfo = (clientInfo) => {
   socket.emit('storeClientInfo', clientInfo);
+};
+
+export const emitTemperature = () => {
+  setInterval(
+    () => socket.send(Math.floor(Math.random() * (30 - 15)) + 15),
+    3000
+  );
 };
 
 export const subscribeToConnect = (cb) => {
@@ -26,7 +33,10 @@ export const subscribeToMessages = (cb) => {
 };
 
 export const subscribeToBroadcast = (cb) => {
-  socket.on('broadcast', data => cb(null, data));
+  socket.on('broadcast', data => {
+    cb(null, data);
+    console.log('broadcast: ', data);
+  });
 };
 
 export default {
@@ -34,5 +44,6 @@ export default {
   subscribeToMessages,
   subscribeToBroadcast,
   emitMessage,
-  emitClientInfo
+  emitClientInfo,
+  emitTemperature
 };

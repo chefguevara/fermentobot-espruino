@@ -7,8 +7,8 @@ const StyledScreen = styled.code`
   margin: 20px auto 0;
   background-color: #eee;
   border: 1px solid #bbb;
-  width: 400px;
-  height: 300px;
+  width: 250px;
+  height: 280px;
   overflow-y: auto;
   text-align: left;
 `;
@@ -20,17 +20,24 @@ const CenteredDiv = styled.div`
   width: 100%;
 `;
 
+const StyledUl = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  margin: 0 auto;
+`;
+
 // const CenteredDiv =
 
 const Screen = ({ messages }) => (
   <StyledScreen>
     {messages.length >= 1
       ? (
-        <ul>
+        <StyledUl>
           {messages.map((msg, key) =>
-            <li key={key}>{msg}</li>
+            <li key={key}>{`${msg.client} - ${msg.temp}`}</li>
           )}
-        </ul>)
+        </StyledUl>)
       : (<CenteredDiv>no hay mensajes</CenteredDiv>)
     }
   </StyledScreen>

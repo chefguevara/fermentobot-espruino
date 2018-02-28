@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 const StyledInput = styled.input`
   margin: 20px 10px 0 0;
-  width: 200px;
+  width: 70%;
 `;
 
 const Input = ({ onChange, onKeyPress }) => {

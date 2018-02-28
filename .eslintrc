@@ -1,16 +1,15 @@
 {
-  "extends": "standard",
+  "extends": "airbnb",
   "rules": {
-    "no-bitwise": ["error", { "allow": ["<<", ">>", "|", "^"] }],
-    "comma-dangle": ["error", "never"],
+    "no-bitwise": ["off"],
+    "comma-dangle": ["off"],
     "no-useless-call": "error",
     "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1 }],
     "global-require": 0,
     "import/no-unresolved": 0,
     "import/no-extraneous-dependencies": 0,
     "object-shorthand": 0,
-    "semi": ["error", "always"],
-    "quotes": ["error", "double", { "avoidEscape": true }]
+    "semi": ["off"]
   },
   "globals": {
     "E": true,

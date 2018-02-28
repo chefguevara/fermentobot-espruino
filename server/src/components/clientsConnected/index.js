@@ -20,18 +20,18 @@ const getClientsText = (number) => {
   return text || defaultText;
 };
 
-const Clients = ({ clients }) => (
+const ClientsConnected = ({ number }) => (
   <StyledWrapper>
-    {getClientsText(clients)}
+    {getClientsText(number)}
   </StyledWrapper>
 );
 
-Clients.propTypes = {
-  clients: PropTypes.number
+ClientsConnected.propTypes = {
+  number: PropTypes.number
 };
 
-Clients.defaultProps = {
-  clients: 0
+ClientsConnected.defaultProps = {
+  number: 0
 };
 
-export default Clients;
+export default ClientsConnected;

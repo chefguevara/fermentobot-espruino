@@ -5,12 +5,14 @@ import {
   subscribeToBroadcast,
   subscribeToConnect,
   subscribeToMessages,
-  emitMessage
+  emitMessage,
+  emitTemperature
 } from './utils/api';
 
 import Header from './components/header';
-import Clients from './components/clients';
+import ClientsConnected from './components/clientsConnected';
 import Screen from './components/screen';
+import ClientList from './components/clientList';
 import Button from './components/button';
 import Input from './components/input';
 
@@ -26,15 +28,18 @@ const StyledDataWrapper = styled.div`
   padding: 20px 0;
 `;
 
+const StyledWrapper = styled.div`
+
+`;
+
 class App extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       messages: [],
-      clients: 0,
-      input: '',
-      fermentadores: []
+      clients: [],
+      input: ''
     };
 
     this.onInputChange = this.onInputChange.bind(this);
@@ -43,49 +48,55 @@ class App extends Component {
 
   componentDidMount() {
     // Suscripcion al los fermentadores
-    subscribeToConnect((err, fermentador) => {
-      this.setState(prevState => ({
-        fermentadores: [...prevState.fermentadores, fermentador]
-      }));
+    subscribeToConnect((err, customId) => {
+      console.log(`${customId} connected!`);
+      emitTemperature();
     });
+
     // Suscripcion a mensajes de fermentadores
     subscribeToMessages((err, message) => {
       this.setState(prevState => ({
-        messages: [...prevState.messages, message.description]
+        messages: [
+          ...prevState.messages,
+          message.description
+        ]
       }));
     });
+
     // Suscripcion a mensajes generales
     subscribeToBroadcast((err, clients) => this.setState({ clients }));
   }
 
+  // Manejo de cambio en el Input
   onInputChange(value) {
     this.setState({ input: value });
   }
 
+  // Manejo de click del Boton
   onButtonClick() {
     if (!this.state.input) return;
     emitMessage(this.state.input);
   }
 
   render() {
-    console.log('fermentadores: ', this.state.fermentadres);
-
     return (
       <StyledApp>
         <Header>
-          <Clients clients={this.state.clients} />
+          <ClientsConnected number={this.state.clients.length} />
         </Header>
         <StyledDataWrapper>
-          hola
+          <ClientList clients={this.state.clients} />
+          <StyledWrapper>
+            <Screen messages={this.state.messages} />
+            <Input
+              onChange={this.onInputChange}
+              onKeyPress={this.onButtonClick}
+            />
+            <Button onClick={this.onButtonClick}>
+              Enviar
+            </Button>
+          </StyledWrapper>
         </StyledDataWrapper>
-        <Screen messages={this.state.messages} />
-        <Input
-          onChange={this.onInputChange}
-          onKeyPress={this.onButtonClick}
-        />
-        <Button onClick={this.onButtonClick}>
-          Enviar
-        </Button>
       </StyledApp>
     );
   }
