@@ -1,38 +1,53 @@
-var network = require('network');
+const network = require('network');
+const WebSocket = require('ws');
 
-var pinSensor = 4;
-var pinRelay = 5;
+const host = '192.168.100.104';
+
+const ws = new WebSocket(host, {
+  path: '/',
+  port: 8080, // default is 80
+  origin: 'Espruino',
+  keepAlive: 60
+});
+
+const pinSensor = 4;
+const pinRelay = '';
 
 var ow = new OneWire(pinSensor);
 var sensor = require("DS18B20").connect(ow);
 
-var maxTemp = 30.5;
-var minTemp = 24.5;
+const ow = new OneWire(pinSensor);
+const sensor = require("DS18B20").connect(ow);
 
-var defaultConfig = {
+const defaultConfig = {
   hostname: 'fermentobot',
   ssid: 'M1tr32900',
   password: 'P4p4l3t4',
-  sensor: pinSensor,
-  cooler: pinRelay
+  sensor: 4,
+  cooler: 0
 };
 
 network.start(defaultConfig).then(() => {
   console.log('start!');
+
+  ws.on('open', () => {
+    console.log('Connected to server');
+
+    setInterval(
+      () => {
+        const temp = sensor.getTemp();
+        console.log('temp: ', temp);
+        ws.send({ temp: temp });
+        if (temp >= maxTemp - 1) {
+          console.log('temp alta!', temp);
+          ws.send({ message: 'high' });
+        }
+        if (temp < minTemp + 1) {
+          console.log('temp baja!', temp);
+          ws.send({ message: 'low' });
+        }
+      },
+      1000
+    );
+  });
 });
-
-function setCooler(isOn) {
-  digitalWrite(pinRelay, !isOn); // 0 turns the relay on, 1 turns it off
-}
-
-setInterval(
-  function() {
-    var temp = sensor.getTemp();
-    console.log('temp: ', temp);
-    console.log('maxTemp: ', maxTemp);
-    console.log('minTemp: ', minTemp);
-    if (temp >= maxTemp - 1) { setCooler(true); console.log('temp alta!'); }
-    if (temp < minTemp + 1) { setCooler(false); console.log('temp baja!'); }
-  },
-  2000
-);
