@@ -50,7 +50,7 @@ class App extends Component {
     // Suscripcion al los fermentadores
     subscribeToConnect((err, customId) => {
       console.log(`${customId} connected!`);
-      emitTemperature();
+      // emitTemperature();
     });
 
     // Suscripcion a mensajes de fermentadores

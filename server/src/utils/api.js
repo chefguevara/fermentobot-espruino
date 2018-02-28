@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 import shortid from 'shortid';
 
-const socket = io('http://localhost:8080');
+const socket = io('http://192.168.100.104:8080');
 
 export const emitMessage = (msg) => {
   socket.emit('message', msg);
